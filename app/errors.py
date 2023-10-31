@@ -1,6 +1,5 @@
-from http import HTTPStatus
-
 
 class InvalidInputData(Exception):
-    ERR_STATUS = HTTPStatus.BAD_REQUEST
-    ERR_MESSAGE = "InvalidInputData"
+    def __init__(self, message, status_code=400):
+        super().__init__(message)
+        self.status_code = status_code

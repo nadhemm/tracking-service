@@ -1,19 +1,19 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# pyenv
-.python-version
-
-# celery beat schedule file
-celerybeat-schedule
-
-# Environments
-.env
-.venv
-
-# Pyre type checker
-.pyre/
-
-.idea/
+## Byte-compiled / optimized / DLL files
+#__pycache__/
+#*.py[cod]
+#*$py.class
+#
+## pyenv
+#.python-version
+#
+## celery beat schedule file
+#celerybeat-schedule
+#
+## Environments
+#.env
+#.venv
+#
+## Pyre type checker
+#.pyre/
+#
+#.idea/

@@ -5,8 +5,8 @@ from app import create_app
 from app.models import db
 
 
-@pytest.fixture(scope='function')
-def test_client(autouse=True):
+@pytest.fixture(scope='function', autouse=True)
+def test_client():
     flask_app = create_app("test")
 
     # Create a test client using the Flask application configured for testing

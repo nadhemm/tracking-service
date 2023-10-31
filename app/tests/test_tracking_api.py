@@ -12,7 +12,7 @@ from app.tests.config import test_client, requests_mock
 
 
 @patch("app.services.tracking.trigger_process_tracking_async")
-def test_process_tracking_should_store_data_and_trigger_async_task(trigger_process_tracking_async, test_client):
+def test_process_tracking_should_store_data_and_trigger_async_processing(trigger_process_tracking_async, test_client):
     request_body = {
         "parcel_delivery_id": 123,
         "parcel_carrier_name": "La Poste",
@@ -24,13 +24,32 @@ def test_process_tracking_should_store_data_and_trigger_async_task(trigger_proce
     response = test_client.post(
         "rest/trackings/",
         json=request_body,
-        headers={'Client-id': 'MOEZ'}
+        headers={'Client-Id': 'MOEZ'}
     )
     assert response.status_code == 200
-    trigger_process_tracking_async.assert_called_once()
+
     assert len(Tracking.query.all()) == 1
     tracking = Tracking.query.one()
     assert tracking.payload == request_body
+
+    trigger_process_tracking_async.assert_called_once()
+
+
+def test_process_tracking_with_invalid_input_should_fail_before_triggering_async_task(test_client):
+    # data format is wrong/missing
+    request_body = {
+        "parcel_delivery_id": 123,
+        "parcel_carrier_name": "La Poste",
+        "parcel_full_address": {
+            "postcode": "93400",
+        },
+    }
+
+    response = test_client.post("rest/trackings/", json=request_body, headers={'Client-Id':'MOEZ'})
+    assert response.status_code == 400
+    assert "1 validation error for InputSchema" in response.text
+    assert "Field required [type=missing, input_value={'postcode': '93400'}, input_type=dict]" in response.text
+
 
 
 @patch("app.services.tracking.trigger_process_tracking_async")
@@ -40,20 +59,11 @@ def test_process_tracking_through_file(trigger_process_tracking_async, test_clie
     response = test_client.post(
         "rest/trackings/file_based",
         json={"file_path": file_path},
-        headers={'Client-id':'NADHEM'}
+        headers={'Client-Id':'NADHEM'}
     )
     assert response.status_code == 200
     assert trigger_process_tracking_async.call_count == 3
     assert len(Tracking.query.all()) == 3
-
-
-def test_process_tracking_with_invalid_input_should_fail_before_triggering_async_task(test_client):
-    # data format is wrong/missing
-    request_body = {
-        "parcel_delivery_id": 123,
-    }
-    response = test_client.post("rest/trackings/", json=request_body)
-    assert response.status_code != 200
 
 
 def test_process_tracking_async_task(test_client, requests_mock):

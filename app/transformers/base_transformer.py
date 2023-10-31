@@ -21,6 +21,7 @@ CARRIER_NAME_TO_KEY = {
     "UPS Mail": "ups - mi",
 }
 
+
 class BaseTransformer:
     tracking: Tracking
     input_schema: BaseModel
@@ -32,9 +33,9 @@ class BaseTransformer:
     def validate_input_data(cls, json):
         try:
             cls.input_schema(**json)
-        except ValidationError:
+        except ValidationError as e:
             # TODO: send to reporting channel or return 400 status code..
-            raise InvalidInputData
+            raise InvalidInputData(e)
 
     def transform(self):
         self._transform()

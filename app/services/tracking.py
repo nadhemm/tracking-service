@@ -1,6 +1,5 @@
 import csv
-
-from flask import request
+from typing import List
 
 from app import celery
 from app.clients import parcellab
@@ -12,7 +11,7 @@ from app.transformers.base_transformer import BaseTransformer
 from app.transformers.nadhem_gmbh_transformer import NadhemGmbhTransformer
 
 
-def store_tracking_data_and_trigger_process_tracking_async(data: dict, client_id: str):
+def store_tracking_data_and_trigger_process_tracking_async(data: dict, client_id: str) -> Tracking:
     tracking = _pre_process_tracking(data, client_id)
     trigger_process_tracking_async(tracking_id=tracking.id)
     return tracking
@@ -56,21 +55,24 @@ def process_tracking_service(tracking_id: int):
 
 
 def get_transformer(client_id: str):
-    """" Returns the correct transformer based on request header: client-id """
+    """" Returns the correct transformer based on request header: Client-Id """
     client_id_to_transformer = {
-     "NADHEM": NadhemGmbhTransformer,
-     "MOEZ": MoezGmbhTransformer,
+        "NADHEM": NadhemGmbhTransformer,
+        "MOEZ": MoezGmbhTransformer,
     }
     return client_id_to_transformer[client_id]
 
 
-def process_trackings_by_file(file_path, client_id):
+def process_trackings_by_file(file_path, client_id) -> List[int]:
     # in the context of this poc, we'll assume we're using local paths
     with open(f"../{file_path}", 'r', newline="") as csv_file:
         # TODO: add support for other file types: json, fixed..
         csv_reader = csv.reader(csv_file)
         # Read and process the header row
         header = next(csv_reader)
-
+        tracking_ids = []
         for input in csv_reader:
-            store_tracking_data_and_trigger_process_tracking_async(dict(zip(header, input)), client_id)
+            tracking = store_tracking_data_and_trigger_process_tracking_async(dict(zip(header, input)), client_id)
+            tracking_ids.append(tracking.id)
+
+    return tracking_ids
